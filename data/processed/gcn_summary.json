@@ -1,0 +1,26 @@
+{
+  "mae": 23730.224609375,
+  "rmse": 34626.51171875,
+  "top_cold_nodes": [
+    {
+      "station": "上海国际旅游度假区",
+      "gcn_pred_flow": 162753.796875
+    },
+    {
+      "station": "康桥东",
+      "gcn_pred_flow": 162753.796875
+    },
+    {
+      "station": "景洪路",
+      "gcn_pred_flow": 162753.796875
+    },
+    {
+      "station": "浦东1号2号航站楼",
+      "gcn_pred_flow": 162753.796875
+    },
+    {
+      "station": "三林南",
+      "gcn_pred_flow": 154392.515625
+    }
+  ]
+}
