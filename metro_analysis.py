@@ -212,56 +212,55 @@ def compute_network_metrics(G: nx.Graph, stations_df: pd.DataFrame, flow_df: pd.
 
 def plot_network_map(stations_df: pd.DataFrame, edges_df: pd.DataFrame) -> Path:
     fig_path = FIG_DIR / "shanghai_metro_network.png"
-    with plt.style.context("dark_background"):
-        plt.figure(figsize=(10, 10))
-        for row in edges_df.itertuples():
-            coord_a = stations_df.loc[stations_df["name"] == row.station_a, ["lon", "lat"]]
-            coord_b = stations_df.loc[stations_df["name"] == row.station_b, ["lon", "lat"]]
-            if coord_a.empty or coord_b.empty:
-                continue
-            xs = [coord_a["lon"].values[0], coord_b["lon"].values[0]]
-            ys = [coord_a["lat"].values[0], coord_b["lat"].values[0]]
-            plt.plot(xs, ys, color="#444a6d", linewidth=0.4, alpha=0.35)
-        scatter = plt.scatter(
-            stations_df["lon"],
-            stations_df["lat"],
-            s=20,
-            c=stations_df["line_count"],
-            cmap="viridis",
-            alpha=0.95,
-            edgecolors="white",
-            linewidths=0.2,
+    plt.figure(figsize=(10, 10), facecolor="white")
+    for row in edges_df.itertuples():
+        coord_a = stations_df.loc[stations_df["name"] == row.station_a, ["lon", "lat"]]
+        coord_b = stations_df.loc[stations_df["name"] == row.station_b, ["lon", "lat"]]
+        if coord_a.empty or coord_b.empty:
+            continue
+        xs = [coord_a["lon"].values[0], coord_b["lon"].values[0]]
+        ys = [coord_a["lat"].values[0], coord_b["lat"].values[0]]
+        plt.plot(xs, ys, color="#d0d2db", linewidth=0.4, alpha=0.4)
+    scatter = plt.scatter(
+        stations_df["lon"],
+        stations_df["lat"],
+        s=30,
+        c=stations_df["line_count"],
+        cmap="viridis",
+        alpha=0.9,
+        edgecolors="#ffffff",
+        linewidths=0.2,
+    )
+    hub = stations_df.nlargest(10, "line_count")
+    plt.scatter(
+        hub["lon"],
+        hub["lat"],
+        s=100,
+        facecolors="none",
+        edgecolors="#ff8f00",
+        linewidths=1.2,
+        label="Top10 换乘枢纽",
+    )
+    for _, row in hub.iterrows():
+        plt.text(
+            row["lon"],
+            row["lat"],
+            row["name"],
+            fontsize=8,
+            color="#333333",
+            ha="left",
+            va="bottom",
+            clip_on=True,
         )
-        hub = stations_df.nlargest(10, "line_count")
-        plt.scatter(
-            hub["lon"],
-            hub["lat"],
-            s=80,
-            facecolors="none",
-            edgecolors="#ffdd57",
-            linewidths=1.2,
-            label="Top10 换乘枢纽",
-        )
-        for _, row in hub.iterrows():
-            plt.text(
-                row["lon"],
-                row["lat"],
-                row["name"],
-                fontsize=8,
-                color="#ffdd57",
-                ha="left",
-                va="bottom",
-                clip_on=True,
-            )
-        cbar = plt.colorbar(scatter, shrink=0.8)
-        cbar.set_label("换乘线路数量", rotation=270, labelpad=18)
-        plt.legend(loc="lower left")
-        plt.title("上海地铁网络拓扑 (经纬度投影)")
-        plt.xlabel("经度")
-        plt.ylabel("纬度")
-        plt.tight_layout()
-        plt.savefig(fig_path, dpi=400, facecolor="#0b0d1a")
-        plt.close()
+    cbar = plt.colorbar(scatter, shrink=0.8)
+    cbar.set_label("换乘线路数量", rotation=270, labelpad=18)
+    plt.legend(loc="lower left")
+    plt.title("上海地铁网络拓扑 (经纬度投影)")
+    plt.xlabel("经度")
+    plt.ylabel("纬度")
+    plt.tight_layout()
+    plt.savefig(fig_path, dpi=300, facecolor="white")
+    plt.close()
     return fig_path
 
 
@@ -388,7 +387,7 @@ def plot_peak_scatter(flow_df: pd.DataFrame) -> Path:
 def plot_flow_heatmap(stations_df: pd.DataFrame, flow_df: pd.DataFrame) -> Path:
     merged = stations_df.merge(flow_df, left_on="name", right_on="station", how="left")
     fig_path = FIG_DIR / "flow_heatmap.png"
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(10, 10), facecolor="white")
     scatter = plt.scatter(
         merged["lon"],
         merged["lat"],
@@ -413,7 +412,7 @@ def plot_flow_heatmap(stations_df: pd.DataFrame, flow_df: pd.DataFrame) -> Path:
         loc="lower left",
     )
     plt.tight_layout()
-    plt.savefig(fig_path, dpi=300)
+    plt.savefig(fig_path, dpi=300, facecolor="white")
     plt.close()
     return fig_path
 
@@ -429,7 +428,7 @@ def plot_line_overlap_heatmap(stations_df: pd.DataFrame) -> Tuple[Path, pd.DataF
             matrix.loc[a, b] += 1
             matrix.loc[b, a] += 1
     fig_path = FIG_DIR / "line_overlap_heatmap.png"
-    plt.figure(figsize=(11, 9))
+    plt.figure(figsize=(11, 9), facecolor="white")
     sns.heatmap(
         matrix,
         cmap="mako",
@@ -441,7 +440,7 @@ def plot_line_overlap_heatmap(stations_df: pd.DataFrame) -> Tuple[Path, pd.DataF
     plt.yticks(rotation=0)
     plt.title("线路换乘热力矩阵")
     plt.tight_layout()
-    plt.savefig(fig_path, dpi=300)
+    plt.savefig(fig_path, dpi=300, facecolor="white")
     plt.close()
     return fig_path, matrix
 
@@ -491,7 +490,7 @@ def plot_hourly_profile(metadata_df: pd.DataFrame) -> Tuple[Path, pd.DataFrame]:
     avg_flow = np.divide(totals, counts, out=np.zeros_like(totals), where=counts > 0)
     hourly_df = pd.DataFrame({"hour": np.arange(24), "avg_flow": avg_flow, "sample_count": counts})
     fig_path = FIG_DIR / "hourly_profile.png"
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=(10, 5), facecolor="white")
     plt.fill_between(hourly_df["hour"], hourly_df["avg_flow"], color="#4c72b0", alpha=0.3)
     plt.plot(hourly_df["hour"], hourly_df["avg_flow"], color="#4c72b0", linewidth=2)
     plt.scatter(hourly_df["hour"], hourly_df["avg_flow"], color="#1b6ca8", s=25)
@@ -501,7 +500,7 @@ def plot_hourly_profile(metadata_df: pd.DataFrame) -> Tuple[Path, pd.DataFrame]:
     plt.title("全天客流平均曲线 (按小时)")
     plt.grid(alpha=0.2)
     plt.tight_layout()
-    plt.savefig(fig_path, dpi=300)
+    plt.savefig(fig_path, dpi=300, facecolor="white")
     plt.close()
     return fig_path, hourly_df
 
